@@ -1,7 +1,11 @@
 module util.base32;
 
+size_t getBase32Size(size_t length) {
+	return ((length * 8  - 1) / 5) + 1;
+}
+
 size_t encode(alias encodeChar)(const(ubyte)[] data, char[] buffer) in {
-	assert(buffer.length >= ((data.length * 8  - 1) / 5) + 1);
+	assert(buffer.length >= getBase32Size(data.length));
 } body {
 	size_t i;
 	

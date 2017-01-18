@@ -1,22 +1,12 @@
 module util.damm;
 
-uint computeDamm(const(ubyte)[] data) {
-	uint x;
-	foreach (y; data) {
-		x = getNext(x, y);
-	}
-	
-	return x;
-}
-
-private:
 /**
  * This compute the next value for the dammn alogorithm
  * using GF(2^5) and a x^5 + x^2 + 1 as primitive polynomial.
  *
  * The value is computed such as n = 2*x + y .
  */
-uint getNext(uint x, uint y) in {
+uint getNextDamm(uint x, uint y) in {
 	assert(x == (x & 0x1f));
 	assert(y == (y & 0x1f));
 } out(r) {
@@ -26,4 +16,20 @@ uint getNext(uint x, uint y) in {
 	return (x & 0x10)
 		? n ^ 0x25
 		: n;
+}
+
+void dumpTransitionTable() {
+	import std.stdio;
+	foreach(uint y; 0 .. 32) {
+		write("\t", y);
+	}
+	
+	foreach(uint x; 0 .. 32) {
+		write("\n", x);
+		foreach(uint y; 0 .. 32) {
+			write("\t", getNextDamm(x, y));
+		}
+	}
+	
+	writeln();
 }

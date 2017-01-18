@@ -5,10 +5,9 @@ char getChar(uint n) {
 	return Alphabet[n & 0x1f];
 }
 
-char[] encode(const(ubyte)[] data) {
-	char[] buffer;
-	buffer.length = ((data.length * 8  - 1) / 5) + 1;
-	
+size_t encode(const(ubyte)[] data, char[] buffer) in {
+	assert(buffer.length >= ((data.length * 8  - 1) / 5) + 1);
+} body {
 	size_t i;
 	while(data.length >= 5) {
 		scope(success) data = data[5 .. $];
@@ -29,46 +28,61 @@ char[] encode(const(ubyte)[] data) {
 		buffer[i++] = getChar(data[4]);
 	}
 	
-	auto end = buffer[i .. $];
+	// We got a multiple of 5 number of bits to encode, bail early.
+	if (data.length == 0) {
+		return i;
+	}
+	
+	ubyte[7] suffixBuffer;
+	ubyte[] suffix;
 	switch(data.length) {
-		case 0:
-			goto Next0;
-		
 		case 1:
-			end[1] = getChar(data[0] << 2);
+			suffix = suffixBuffer[0 .. 2];
+			suffix[1] = data[0] << 2;
 			goto Next1;
 		
 		case 2:
-			end[3] = getChar(data[1] << 4);
+			suffix = suffixBuffer[0 .. 4];
+			suffix[3] = data[1] << 4;
 			goto Next2;
 		
 		case 3:
-			end[4] = getChar(data[2] << 1);
+			suffix = suffixBuffer[0 .. 5];
+			suffix[4] = data[2] << 1;
 			goto Next3;
 		
 		case 4:
-			end[4] = getChar(data[2] << 1 | data[3] >> 7);
-			end[5] = getChar(data[3] >> 2);
-			end[6] = getChar(data[3] << 3);
+			suffix = suffixBuffer[0 .. 7];
+			suffix[4] = data[2] << 1 | data[3] >> 7;
+			suffix[5] = data[3] >> 2;
+			suffix[6] = data[3] << 3;
 			goto Next3;
 		
 		Next3:
-			end[3] = getChar(data[1] << 4 | data[2] >> 4);
+			suffix[3] = data[1] << 4 | data[2] >> 4;
 			goto Next2;
 		
 		Next2:
-			end[2] = getChar(data[1] >> 1);
-			end[1] = getChar(data[0] << 2 | data[1] >> 6);
+			suffix[2] = data[1] >> 1;
+			suffix[1] = data[0] << 2 | data[1] >> 6;
 			goto Next1;
 		
 		Next1:
-			end[0] = getChar(data[0] >> 3);
-			goto Next0;
-		
-		Next0:
-			return buffer;
+			suffix[0] = data[0] >> 3;
+			break;
 		
 		default:
-			assert(0);		
+			assert(0);
 	}
+	
+	/**
+	 * We run the actual encoding at the end to make sure
+	 * getChar calls are made in order. This allow various
+	 * checksum computation to be backed in getChar.
+	 */
+	foreach(s; suffix) {
+		buffer[i++] = getChar(s);
+	}
+	
+	return i;
 }

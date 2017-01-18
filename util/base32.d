@@ -4,7 +4,10 @@ size_t getBase32Size(size_t length) {
 	return ((length * 8  - 1) / 5) + 1;
 }
 
-size_t encode(alias encodeChar)(const(ubyte)[] data, char[] buffer) in {
+size_t encode(
+	alias encodeChar,
+	bool discardLast = false,
+)(const(ubyte)[] data, char[] buffer) in {
 	assert(buffer.length >= getBase32Size(data.length));
 } body {
 	size_t i;
@@ -59,9 +62,9 @@ size_t encode(alias encodeChar)(const(ubyte)[] data, char[] buffer) in {
 		
 		case 4:
 			suffix = suffixBuffer[0 .. 7];
-			suffix[4] = cast(ubyte) (data[2] << 1 | data[3] >> 7);
-			suffix[5] = cast(ubyte) (data[3] >> 2);
 			suffix[6] = cast(ubyte) (data[3] << 3);
+			suffix[5] = cast(ubyte) (data[3] >> 2);
+			suffix[4] = cast(ubyte) (data[2] << 1 | data[3] >> 7);
 			goto Next3;
 		
 		Next3:
@@ -79,6 +82,10 @@ size_t encode(alias encodeChar)(const(ubyte)[] data, char[] buffer) in {
 		
 		default:
 			assert(0);
+	}
+	
+	static if (discardLast) {
+		suffix = suffix[0 .. $ - 1];
 	}
 	
 	/**

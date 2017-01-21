@@ -29,13 +29,21 @@ uint encode(ulong n, ubyte[] buffer) {
 		e = n - offset;
 	}
 	
-	if (buffer.length <= byteCount) {
-		throw new Exception("not enough space in the buffer");
-	}
-	
 	// For some obscure reason, DMD doesn't have bswap for 16 bits integrals.
 	// so we do everything with 32bits and 64bits ones.
 	import core.bitop;
+	
+	// This is a fast path that is usable if we have extra buffer space.
+	if (buffer.length >= 8 && byteCount < 8) {
+		auto h = -(1 << (8 - byteCount)) & 0xff;
+		auto v = bswap(e) >> ((7 - byteCount) * 8);
+		*(cast(ulong*) buffer.ptr) = (h | v);
+		return byteCount + 1;
+	}
+	
+	if (buffer.length <= byteCount) {
+		throw new Exception("not enough space in the buffer");
+	}
 	
 	switch(byteCount) {
 		case 1:
@@ -87,8 +95,15 @@ unittest {
 	void testEncode(ulong n, ubyte[] expected) {
 		ubyte[9] buffer;
 		auto l = expected.length;
+		auto sbuf = buffer[0 .. l];
+		
+		// Test fast path.
 		assert(encode(n, buffer) == l);
-		assert(buffer[0 .. l] == expected);
+		assert(sbuf == expected);
+		
+		// Test contrained path.
+		assert(encode(n, sbuf) == l);
+		assert(sbuf == expected);
 	}
 	
 	testEncode(0, [0]);

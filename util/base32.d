@@ -124,6 +124,21 @@ char getBase32(uint n) in {
 	return cast(char) r;
 }
 
+unittest {
+	void test(uint n, char c) {
+		assert(getBase32(n) == c);
+	}
+	
+	test(0, 'A');
+	test(1, 'B');
+	test(9, 'J');
+	test(12, 'M');
+	test(25, 'Z');
+	test(26, '2');
+	test(27, '3');
+	test(31, '7');
+}
+
 /**
  * Support for RFC4648 base32hex
  *
@@ -139,6 +154,21 @@ char getBase32Hex(uint n) in {
 	return cast(char) r;
 }
 
+unittest {
+	void test(uint n, char c) {
+		assert(getBase32Hex(n) == c);
+	}
+	
+	test(0, '0');
+	test(1, '1');
+	test(4, '4');
+	test(9, '9');
+	test(10, 'A');
+	test(15, 'F');
+	test(27, 'R');
+	test(31, 'V');
+}
+
 /**
  * Support for zbase32
  *
@@ -149,4 +179,19 @@ char getZBase32(uint n) in {
 } body {
 	enum Alphabet = "ybndrfg8ejkmcpqxot1uwisza345h769";
 	return Alphabet.ptr[n];
+}
+
+unittest {
+	void test(uint n, char c) {
+		assert(getZBase32(n) == c);
+	}
+	
+	test(0, 'y');
+	test(1, 'b');
+	test(4, 'r');
+	test(9, 'j');
+	test(10, 'k');
+	test(15, 'x');
+	test(27, '5');
+	test(31, '9');
 }

@@ -1,3 +1,4 @@
+#!/usr/bin/env rdmd
 module main;
 
 void main() {

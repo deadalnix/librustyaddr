@@ -1,12 +1,20 @@
 module util.base32;
 
+/*********************
+ * Encoding routines.
+ ********************/
+
+/**
+ * Find out the size of the string in base32 given the size
+ * of the data to encode.
+ */
 size_t getBase32Size(size_t length) {
 	return ((length * 8  - 1) / 5) + 1;
 }
 
 size_t encode(
 	alias encodeChar,
-	bool discardLast = false,
+	bool discardPartial = false,
 )(const(ubyte)[] data, char[] buffer) in {
 	assert(buffer.length >= getBase32Size(data.length));
 } body {
@@ -84,7 +92,7 @@ size_t encode(
 			assert(0);
 	}
 	
-	static if (discardLast) {
+	static if (discardPartial) {
 		suffix = suffix[0 .. $ - 1];
 	}
 	

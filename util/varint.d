@@ -34,6 +34,10 @@ uint encode(ulong n, ubyte[] buffer) {
 	import core.bitop;
 	
 	if (byteCount == 8) {
+		if (buffer.length <= 8) {
+			throw new Exception("not enough space in the buffer");
+		}
+		
 		buffer[0] = 0xff;
 		*(cast(ulong*) (buffer.ptr + 1)) = bswap(e);
 		return 9;
@@ -172,7 +176,7 @@ ulong decode(ref  const(ubyte)[] data) {
 	}
 	
 	if (h == 0xff) {
-		if (data.length < 9) {
+		if (data.length <= 8) {
 			throw new Exception("Ran out of buffer to read from");
 		}
 		

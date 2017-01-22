@@ -1,48 +1,68 @@
 module util.damm;
 
-/**
- * This compute the next value for the dammn alogorithm
- * using GF(2^5) and a x^5 + x^2 + 1 as primitive polynomial.
- *
- * The value is computed such as n = 2*x + y .
- */
-uint getNextDamm(uint x, uint y) in {
-	assert(x == (x & 0x1f));
-	assert(y == (y & 0x1f));
-} out(r) {
-	assert(r == (r & 0x1f));
-} body {
-	auto n = y ^ (x << 1);
-	return (x & 0x10)
-		? n ^ 0x25
-		: n;
+struct Damm {
+private:
+	uint damm;
+	
+	this(uint n) in {
+		assert(n == (n & 0x1f));
+	} body {
+		damm = n;
+	}
+	
+public:
+	alias value this;
+	
+	@property value() const {
+		return damm;
+	}
+	
+	invariant() {
+		assert(damm == (damm & 0x1f));
+	}
+	
+	/**
+	 * This compute the next value for the dammn alogorithm
+	 * using GF(2^5) and a x^5 + x^2 + 1 as primitive polynomial.
+	 *
+	 * The value is computed such as n = 2*x + y .
+	 */
+	Damm getNext(uint x) const in {
+		assert(x == (x & 0x1f));
+	} out(r) {
+		assert(r.damm == (r.damm & 0x1f));
+	} body {
+		auto n = x ^ (damm << 1);
+		auto r = (damm & 0x10) ? n ^ 0x25 : n;
+		return Damm(r);
+	}
 }
 
 unittest {
 	// Check some cherry picked entries
-	assert(getNextDamm(0, 0) == 0);
-	assert(getNextDamm(0, 6) == 6);
-	assert(getNextDamm(0, 19) == 19);
-	assert(getNextDamm(0, 31) == 31);
-	assert(getNextDamm(6, 0) == 12);
-	assert(getNextDamm(16, 0) == 5);
-	assert(getNextDamm(23, 0) == 11);
-	assert(getNextDamm(31, 0) == 27);
+	assert(Damm(0).getNext(0) == 0);
+	assert(Damm(0).getNext(6) == 6);
+	assert(Damm(0).getNext(19) == 19);
+	assert(Damm(0).getNext(31) == 31);
+	assert(Damm(6).getNext(0) == 12);
+	assert(Damm(16).getNext(0) == 5);
+	assert(Damm(23).getNext(0) == 11);
+	assert(Damm(31).getNext(0) == 27);
 	
-	assert(getNextDamm(23, 17) == 26);
-	assert(getNextDamm(15, 22) == 8);
-	assert(getNextDamm(7, 8) == 6);
-	assert(getNextDamm(3, 30) == 24);
-	assert(getNextDamm(30, 3) == 26);
-	assert(getNextDamm(8, 12) == 28);
-	assert(getNextDamm(14, 5) == 25);
-	assert(getNextDamm(26, 29) == 12);
+	assert(Damm(23).getNext(17) == 26);
+	assert(Damm(15).getNext(22) == 8);
+	assert(Damm(7).getNext(8) == 6);
+	assert(Damm(3).getNext(30) == 24);
+	assert(Damm(30).getNext(3) == 26);
+	assert(Damm(8).getNext(12) == 28);
+	assert(Damm(14).getNext(5) == 25);
+	assert(Damm(26).getNext(29) == 12);
 	
 	foreach(i; 0 .. 32) {
 		uint row, col;
 		foreach(j; 0 .. 32) {
-			auto x = getNextDamm(i, j);
-			auto y = getNextDamm(j, i);
+			auto x = Damm(i).getNext(j);
+			auto y = Damm(j).getNext(i);
 			row = row | (1 << x);
 			col = col | (1 << y);
 			
@@ -51,8 +71,8 @@ unittest {
 			
 			// Checks that the quasigroup is weakly totaly antisymetric.
 			foreach(c; 0 .. 32) {
-				auto a = getNextDamm(getNextDamm(c, i), j);
-				auto b = getNextDamm(getNextDamm(c, j), i);
+				auto a = Damm(c).getNext(i).getNext(j);
+				auto b = Damm(c).getNext(j).getNext(i);
 				
 				assert(a != b || i == j);
 			}
@@ -73,7 +93,7 @@ void dumpTransitionTable() {
 	foreach(uint x; 0 .. 32) {
 		write("\n", x);
 		foreach(uint y; 0 .. 32) {
-			write("\t", getNextDamm(x, y));
+			write("\t", Damm(x).getNext(y).value);
 		}
 	}
 	

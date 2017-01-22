@@ -45,12 +45,13 @@ char[] encode(string prefix, ulong ver, ubyte[] hash) {
 	import core.stdc.string;
 	memcpy(addr.ptr, prefix.ptr, prefix.length);
 	
-	uint damm;
+	import util.damm;
+	Damm damm;
 	char getChar(uint n) in {
 		assert(n == (n & 0x1f));
 	} body {
 		import util.damm;
-		damm = getNextDamm(damm, n);
+		damm = damm.getNext(n);
 		
 		import util.base32;
 		return getZBase32(n);

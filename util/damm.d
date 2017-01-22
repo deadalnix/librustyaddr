@@ -28,7 +28,7 @@ unittest {
 	assert(getNextDamm(16, 0) == 5);
 	assert(getNextDamm(23, 0) == 11);
 	assert(getNextDamm(31, 0) == 27);
-
+	
 	assert(getNextDamm(23, 17) == 26);
 	assert(getNextDamm(15, 22) == 8);
 	assert(getNextDamm(7, 8) == 6);

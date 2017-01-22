@@ -9,6 +9,10 @@ module util.base32;
  * of the data to encode.
  */
 size_t getBase32Size(size_t length) {
+	if (length == 0) {
+		return 0;
+	}
+	
 	return ((length * 8  - 1) / 5) + 1;
 }
 
@@ -106,6 +110,44 @@ size_t encode(
 	}
 	
 	return i;
+}
+
+unittest {
+	void test(const(ubyte)[] data, string expected) {
+		char[128] buffer;
+		auto l = expected.length;
+		auto sbuf = buffer[0 .. l];
+		
+		assert(encode!getZBase32(data, buffer) == l);
+		assert(sbuf == expected, sbuf ~ " vs " ~ expected);
+	}
+	
+	test([], "");
+	
+	test([0x00], "yy");
+	test([0x01], "yr");
+	test([0x81], "or");
+	test([0xff], "9h");
+	
+	test([0x00, 0x00], "yyyy");
+	test([0xf5, 0x99], "6sco");
+	test([0xff, 0xff], "999o");
+	
+	test([0x00, 0x00, 0x00], "yyyyy");
+	test([0xab, 0xcd, 0xef], "ixg66");
+	test([0xff, 0xff, 0xff], "99996");
+	
+	test([0x00, 0x00, 0x00, 0x00], "yyyyyyy");
+	test([0x89, 0xab, 0xcd, 0xef], "tgih55a");
+	test([0xff, 0xff, 0xff, 0xff], "999999a");
+	
+	test([0x00, 0x00, 0x00, 0x00, 0x00], "yyyyyyyy");
+	test([0x67, 0x89, 0xab, 0xcd, 0xef], "c6r4zuxx");
+	test([0xff, 0xff, 0xff, 0xff, 0xff], "99999999");
+	
+	test([0x00, 0x00, 0x00, 0x00, 0x00, 0x00], "yyyyyyyyyy");
+	test([0x45, 0x67, 0x89, 0xab, 0xcd, 0xef], "eiuauk6p7h");
+	test([0xff, 0xff, 0xff, 0xff, 0xff, 0xff], "999999999h");
 }
 
 /**

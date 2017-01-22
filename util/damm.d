@@ -93,7 +93,7 @@ void dumpTransitionTable() {
 	foreach(uint x; 0 .. 32) {
 		write("\n", x);
 		foreach(uint y; 0 .. 32) {
-			write("\t", Damm(x).getNext(y).value);
+			write("\t", Damm(y).getNext(x).value);
 		}
 	}
 	

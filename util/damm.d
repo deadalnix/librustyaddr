@@ -41,10 +41,24 @@ unittest {
 	foreach(i; 0 .. 32) {
 		uint row, col;
 		foreach(j; 0 .. 32) {
-			row = row | (1 << getNextDamm(i, j));
-			col = col | (1 << getNextDamm(j, i));
+			auto x = getNextDamm(i, j);
+			auto y = getNextDamm(j, i);
+			row = row | (1 << x);
+			col = col | (1 << y);
+			
+			// Checks that the quasigroup is antisymetric.
+			assert(x != y || i == j);
+			
+			// Checks that the quasigroup is weakly totaly antisymetric.
+			foreach(c; 0 .. 32) {
+				auto a = getNextDamm(getNextDamm(c, i), j);
+				auto b = getNextDamm(getNextDamm(c, j), i);
+				
+				assert(a != b || i == j);
+			}
 		}
 		
+		// Check that it is a magic square.
 		assert(row == -1);
 		assert(col == -1);
 	}

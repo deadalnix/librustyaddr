@@ -484,6 +484,7 @@ unittest {
 uint getFromBase32(char n) out(r) {
 	assert(r == (r & 0x1f));
 } body {
+	// We do not really care about the case here.
 	uint l = (n | 0x20) - 'a';
 	if (l < 26) {
 		return l;
@@ -531,7 +532,7 @@ uint getFromBase32Hex(char c) out(r) {
 		return n;
 	}
 	
-	// We support 
+	// We do not really care about the case here.
 	uint l = (c | 0x20) - 'a';
 	if (l < 22) {
 		return l + 10;
